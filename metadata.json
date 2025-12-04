@@ -1,0 +1,5 @@
+{
+  "name": "Inventory Ops Analyzer",
+  "description": "A dashboard to analyze inventory CSV feeds, separating stock status by US and Canada markets while excluding returns.",
+  "requestFramePermissions": []
+}
