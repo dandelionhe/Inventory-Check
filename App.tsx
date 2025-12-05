@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import FileUpload from './components/FileUpload';
 import Dashboard from './components/Dashboard';
-import { InventoryItem } from './types';
-import { parseCSV } from './utils/csvHelpers';
+import { InventoryItem, Alert } from './types';
+import { parseCSV, generateAlerts } from './utils/csvHelpers';
+import { db } from './utils/db';
 
 const App: React.FC = () => {
   const [inventoryData, setInventoryData] = useState<InventoryItem[] | null>(null);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [currentDate, setCurrentDate] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,8 +16,26 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await parseCSV(file);
-      setInventoryData(data);
+      // 1. Parse Data
+      const { items, date } = await parseCSV(file);
+      
+      // 2. Load previous data for Alert Generation
+      // Get the latest snapshot in the DB that is BEFORE or NOT equal to this new date
+      const previousSnapshot = await db.getLatestSnapshotBefore(date);
+
+      // 3. Generate Alerts
+      let generatedAlerts: Alert[] = [];
+      if (previousSnapshot) {
+        generatedAlerts = generateAlerts(items, previousSnapshot.items, date);
+      }
+      setAlerts(generatedAlerts);
+
+      // 4. Save to DB
+      await db.saveSnapshot(date, items);
+      
+      setInventoryData(items);
+      setCurrentDate(date);
+
     } catch (err) {
       console.error(err);
       setError("Failed to parse the CSV file. Please check the format and try again.");
@@ -25,13 +46,19 @@ const App: React.FC = () => {
 
   const handleReset = () => {
     setInventoryData(null);
+    setAlerts([]);
     setError(null);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {inventoryData ? (
-        <Dashboard data={inventoryData} onReset={handleReset} />
+        <Dashboard 
+          data={inventoryData} 
+          alerts={alerts}
+          onReset={handleReset} 
+          currentDate={currentDate}
+        />
       ) : (
         <div className="flex flex-col h-screen">
           <header className="bg-white shadow-sm py-4 px-6 border-b border-slate-200">
@@ -46,6 +73,9 @@ const App: React.FC = () => {
                 </div>
               )}
               <FileUpload onFileUpload={handleFileUpload} isLoading={isLoading} />
+              <div className="mt-8 text-center text-slate-400 text-sm">
+                <p>Data is stored locally in your browser for history analysis.</p>
+              </div>
             </div>
           </main>
         </div>

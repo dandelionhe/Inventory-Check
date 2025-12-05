@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { InventoryItem } from '../types';
+import { InventoryItem, Market } from '../types';
 import { Search, AlertCircle, CheckCircle2, PackageX, AlertTriangle, ChevronDown, ChevronRight, Warehouse, MapPin } from 'lucide-react';
 
 export type FilterMode = 'ALL' | 'OOS' | 'LOW_STOCK';
-export type Market = 'US' | 'CA';
 
 interface StockTableProps {
   items: InventoryItem[];
