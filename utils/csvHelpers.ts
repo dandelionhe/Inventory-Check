@@ -85,7 +85,7 @@ export const parseCSV = (file: File): Promise<{ items: InventoryItem[], date: st
           const validItems = processed.filter(i => i.sku !== 'Unknown');
           resolve({ items: validItems, date });
         },
-        error: (error) => {
+        error: (error: any) => {
           reject(error);
         }
       });

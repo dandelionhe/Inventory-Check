@@ -14,13 +14,17 @@ const HistoryView: React.FC = () => {
   // Load available SKUs on mount
   useEffect(() => {
     const loadSkus = async () => {
-      // Get the latest snapshot to list SKUs
+      // Get all snapshots to list ALL unique SKUs ever seen
       const snapshots = await db.getAllSnapshots();
-      if (snapshots.length > 0) {
-        // Just take skus from the latest snapshot
-        const latest = snapshots[0];
-        setAllSkus(latest.items.map(i => i.sku).sort());
-      }
+      const skuSet = new Set<string>();
+      
+      snapshots.forEach(snap => {
+        snap.items.forEach(item => {
+          skuSet.add(item.sku);
+        });
+      });
+      
+      setAllSkus(Array.from(skuSet).sort());
     };
     loadSkus();
   }, []);

@@ -15,8 +15,8 @@ export interface InventoryStats {
   totalSkus: number;
   usOutOfStock: number;
   canadaOutOfStock: number;
-  usLowStock: number;     // Items with < 10 units (includes 0)
-  canadaLowStock: number; // Items with < 10 units (includes 0)
+  usLowStock: number;     // Items with 1-9 units (excludes 0)
+  canadaLowStock: number; // Items with 1-9 units (excludes 0)
   usInStock: number;      // Items with >= 10 units
   canadaInStock: number;  // Items with >= 10 units
 }
